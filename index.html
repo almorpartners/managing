@@ -76,10 +76,12 @@
     .grid3{grid-template-columns:1fr;}
   }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
+  console.log("Supabase chargé :", window.supabase);
 const {useState, useEffect} = React;
 
 const PASSWORD = "2444";
@@ -172,7 +174,7 @@ function App(){
   return (
     <div className="app">
       <div className="sidebar">
-        <div className="brand">Mon Commerce</div>
+        <div className="brand">AL Partners</div>
         {nav.map(n=>(
           <button key={n.id} className={"navitem"+(page===n.id?" active":"")} onClick={()=>{setPage(n.id); setShowNotif(false);}}>{n.label}</button>
         ))}
