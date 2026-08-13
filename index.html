@@ -82,6 +82,15 @@
 <div id="root"></div>
 <script type="text/babel">
   console.log("Supabase chargé :", window.supabase);
+  const SUPABASE_URL = "https://ghxtmwqiuhhoahzxllxf.supabase.co";
+const SUPABASE_PUBLIC_KEY = "sb_publishable_wh5YlKB1VAKnE1OhDX7BEw_602nlsLc";
+
+const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLIC_KEY
+);
+
+console.log("Client Supabase créé :", supabaseClient);
 const {useState, useEffect} = React;
 
 const PASSWORD = "2444";
