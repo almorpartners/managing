@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mon Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  :root{
+    --bg:#0b0e11; --card:#151a1f; --card2:#1c222a; --border:#242b33;
+    --text:#f2f4f6; --muted:#8a94a3; --green:#22c55e; --red:#ef4444;
+    --accent:#4f7cff;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{font-family:'Inter',sans-serif; background:var(--bg); color:var(--text);}
+  #root{min-height:100vh;}
+  button{font-family:inherit; cursor:pointer; border:none;}
+  input,select,textarea{font-family:inherit; background:var(--card2); border:1px solid var(--border); color:var(--text); border-radius:10px; padding:10px 12px; width:100%; font-size:14px;}
+  input:focus,select:focus,textarea:focus{outline:1px solid var(--accent);}
+  .app{display:flex; min-height:100vh;}
+  .sidebar{width:220px; background:var(--card); border-right:1px solid var(--border); padding:24px 14px; display:flex; flex-direction:column; gap:6px;}
+  .brand{font-weight:800; font-size:18px; padding:0 10px 20px 10px; letter-spacing:-0.5px;}
+  .navitem{display:flex; align-items:center; gap:10px; padding:11px 12px; border-radius:10px; color:var(--muted); font-size:14px; font-weight:500; background:transparent; text-align:left; width:100%; position:relative;}
+  .navitem.active{background:var(--card2); color:var(--text);}
+  .navitem:hover{color:var(--text);}
+  .badge{position:absolute; right:10px; background:var(--red); color:#fff; font-size:11px; font-weight:700; border-radius:20px; padding:1px 6px;}
+  .logout{margin-top:auto; color:var(--muted); font-size:13px; padding:11px 12px;}
+  .main{flex:1; padding:32px 40px; max-width:900px; margin:0 auto; width:100%;}
+  h1{font-size:22px; font-weight:700; margin-bottom:22px;}
+  .card{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px;}
+  .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:20px;}
+  .stat-label{color:var(--muted); font-size:13px; margin-bottom:6px;}
+  .stat-value{font-size:20px; font-weight:700;}
+  .balance-card{padding:28px; margin-bottom:20px;}
+  .balance-value{font-size:40px; font-weight:800; letter-spacing:-1px; margin-top:6px;}
+  .row{display:flex; justify-content:space-between; align-items:center;}
+  .btn{background:var(--accent); color:#fff; padding:10px 16px; border-radius:10px; font-weight:600; font-size:14px;}
+  .btn-ghost{background:var(--card2); color:var(--text); padding:9px 14px; border-radius:10px; font-weight:600; font-size:13px; border:1px solid var(--border);}
+  .btn-danger{background:transparent; color:var(--red); font-size:13px; font-weight:600;}
+  .list-item{display:flex; justify-content:space-between; align-items:center; padding:13px 4px; border-bottom:1px solid var(--border);}
+  .list-item:last-child{border-bottom:none;}
+  .tag{font-size:12px; color:var(--muted);}
+  .amount-pos{color:var(--green); font-weight:700;}
+  .amount-neg{color:var(--red); font-weight:700;}
+  .modal-bg{position:fixed; inset:0; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:50;}
+  .modal{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:24px; width:360px; display:flex; flex-direction:column; gap:12px;}
+  .modal h2{font-size:16px; margin-bottom:4px;}
+  .field-label{font-size:12px; color:var(--muted); margin-bottom:4px; display:block;}
+  .modal-actions{display:flex; gap:10px; margin-top:8px;}
+  .section-title{display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;}
+  .progress-bar{background:var(--card2); border-radius:20px; height:8px; overflow:hidden; margin-top:8px;}
+  .progress-fill{background:var(--accent); height:100%; border-radius:20px;}
+  .login-wrap{min-height:100vh; display:flex; align-items:center; justify-content:center;}
+  .login-card{background:var(--card); border:1px solid var(--border); border-radius:18px; padding:36px; width:320px; text-align:center;}
+  .login-card h1{font-size:20px; margin-bottom:20px;}
+  .chart-bar{fill:var(--accent);}
+  .task-check{width:18px; height:18px; border-radius:5px; border:1.5px solid var(--muted); display:flex; align-items:center; justify-content:center; font-size:12px; flex-shrink:0;}
+  .task-check.done{background:var(--green); border-color:var(--green); color:#fff;}
+  .funnel-step{display:flex; align-items:center; gap:12px; padding:12px 4px; border-bottom:1px solid var(--border);}
+  .funnel-step:last-child{border-bottom:none;}
+  .empty{color:var(--muted); font-size:14px; padding:20px 4px; text-align:center;}
+  .notif-item{padding:12px 4px; border-bottom:1px solid var(--border); font-size:14px;}
+  .notif-item.unread{color:var(--text);}
+  .notif-item:not(.unread){color:var(--muted);}
+  .notif-time{font-size:12px; color:var(--muted); margin-top:2px;}
+  @media(max-width:800px){
+    .app{flex-direction:column;}
+    .sidebar{width:100%; flex-direction:row; overflow-x:auto; padding:10px; border-right:none; border-bottom:1px solid var(--border);}
+    .brand{display:none;} .logout{display:none;}
+    .navitem{white-space:nowrap;}
+    .main{padding:20px;}
+    .grid3{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState, useEffect} = React;
+
+const PASSWORD = "monmotdepasse"; // change ce mot de passe ici
+const LS_KEY = "mondash_data_v1";
+
+function loadData(){
+  const raw = localStorage.getItem(LS_KEY);
+  if(raw) return JSON.parse(raw);
+  return {
+    transactions: [
+      {id:1, type:"revenu", amount:500, desc:"Vente site client A", cat:"Vente", date:"2026-08-12"},
+      {id:2, type:"depense", amount:80, desc:"Publicité Facebook", cat:"Marketing", date:"2026-08-11"},
+      {id:3, type:"revenu", amount:1200, desc:"Vente projet B", cat:"Vente", date:"2026-08-09"},
+    ],
+    projects: [
+      {id:1, name:"Site client A", desc:"Site vitrine e-commerce", progress:60, status:"En cours"},
+    ],
+    tasks: [
+      {id:1, text:"Contacter le prospect", done:false},
+      {id:2, text:"Trouver les images", done:false},
+      {id:3, text:"Déposer le projet sur GitHub", done:true},
+    ],
+    funnel: [
+      {id:1, label:"Repérage", done:true},
+      {id:2, label:"Création du Code avec Claude", done:true},
+      {id:3, label:"Dépôt sur GitHub", done:true},
+      {id:4, label:"Trouver Images Google", done:true},
+      {id:5, label:"Intégration des images", done:false},
+      {id:6, label:"Contact du prospect", done:false},
+      {id:7, label:"Validation et intégration sur les plateformes", done:false},
+    ],
+    notifications: [
+      {id:1, text:"Bienvenue sur votre dashboard 👋", read:true, date:new Date().toISOString()},
+    ],
+    nextId: 100,
+  };
+}
+
+function saveData(data){ localStorage.setItem(LS_KEY, JSON.stringify(data)); }
+
+function fmt(n){ return n.toLocaleString('fr-FR', {maximumFractionDigits:0}) + " €"; }
+function today(){ return new Date().toISOString().slice(0,10); }
+function fmtDate(d){ const dt = new Date(d); return dt.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}); }
+
+function App(){
+  const [authed, setAuthed] = useState(sessionStorage.getItem("authed")==="1");
+  const [pwd, setPwd] = useState("");
+  const [err, setErr] = useState("");
+  const [data, setData] = useState(loadData());
+  const [page, setPage] = useState("dashboard");
+  const [showNotif, setShowNotif] = useState(false);
+
+  useEffect(()=>{ saveData(data); }, [data]);
+
+  function addNotif(text){
+    setData(d => ({...d, notifications:[{id:d.nextId, text, read:false, date:new Date().toISOString()}, ...d.notifications], nextId:d.nextId+1}));
+  }
+  function nextId(){ let id; setData(d=>{ id=d.nextId; return {...d, nextId:d.nextId+1}; }); return id; }
+
+  function login(e){
+    e.preventDefault();
+    if(pwd === PASSWORD){ sessionStorage.setItem("authed","1"); setAuthed(true); }
+    else setErr("Mot de passe incorrect");
+  }
+  function logout(){ sessionStorage.removeItem("authed"); setAuthed(false); }
+
+  if(!authed){
+    return (
+      <div className="login-wrap">
+        <form className="login-card" onSubmit={login}>
+          <h1>🔒 Connexion</h1>
+          <input type="password" placeholder="Mot de passe" value={pwd} onChange={e=>setPwd(e.target.value)} style={{marginBottom:12}} autoFocus/>
+          {err && <div style={{color:"var(--red)", fontSize:13, marginBottom:10}}>{err}</div>}
+          <button className="btn" style={{width:"100%"}} type="submit">Se connecter</button>
+        </form>
+      </div>
+    );
+  }
+
+  const unread = data.notifications.filter(n=>!n.read).length;
+
+  const nav = [
+    {id:"dashboard", label:"📊 Dashboard"},
+    {id:"finances", label:"💰 Finances"},
+    {id:"projects", label:"📁 Projets"},
+    {id:"tasks", label:"✅ À faire"},
+    {id:"funnel", label:"🚀 Parcours de vente"},
+  ];
+
+  return (
+    <div className="app">
+      <div className="sidebar">
+        <div className="brand">Mon Commerce</div>
+        {nav.map(n=>(
+          <button key={n.id} className={"navitem"+(page===n.id?" active":"")} onClick={()=>{setPage(n.id); setShowNotif(false);}}>{n.label}</button>
+        ))}
+        <button className={"navitem"+(showNotif?" active":"")} onClick={()=>setShowNotif(s=>!s)}>
+          🔔 Notifications
+          {unread>0 && <span className="badge">{unread}</span>}
+        </button>
+        <button className="logout" onClick={logout}>↩ Déconnexion</button>
+      </div>
+      <div className="main">
+        {showNotif ? (
+          <NotifPanel data={data} setData={setData} />
+        ) : page==="dashboard" ? (
+          <Dashboard data={data} />
+        ) : page==="finances" ? (
+          <Finances data={data} setData={setData} addNotif={addNotif} nextId={nextId} />
+        ) : page==="projects" ? (
+          <Projects data={data} setData={setData} addNotif={addNotif} nextId={nextId} />
+        ) : page==="tasks" ? (
+          <Tasks data={data} setData={setData} addNotif={addNotif} nextId={nextId} />
+        ) : (
+          <Funnel data={data} setData={setData} addNotif={addNotif} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function computeTotals(transactions){
+  let rev=0, dep=0;
+  transactions.forEach(t => t.type==="revenu" ? rev+=Number(t.amount) : dep+=Number(t.amount));
+  return {rev, dep, solde: rev-dep};
+}
+
+function Dashboard({data}){
+  const {rev, dep, solde} = computeTotals(data.transactions);
+  // 7 derniers jours
+  const days = [...Array(7)].map((_,i)=>{
+    const d = new Date(); d.setDate(d.getDate() - (6-i));
+    return d.toISOString().slice(0,10);
+  });
+  const byDay = days.map(day=>{
+    const rev = data.transactions.filter(t=>t.date===day && t.type==="revenu").reduce((s,t)=>s+Number(t.amount),0);
+    const dep = data.transactions.filter(t=>t.date===day && t.type==="depense").reduce((s,t)=>s+Number(t.amount),0);
+    return {day, rev, dep};
+  });
+  const max = Math.max(1, ...byDay.map(d=>Math.max(d.rev,d.dep)));
+
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      <div className="card balance-card">
+        <div className="stat-label">Solde total</div>
+        <div className="balance-value">{fmt(solde)}</div>
+      </div>
+      <div className="grid3">
+        <div className="card"><div className="stat-label">Revenus</div><div className="stat-value" style={{color:"var(--green)"}}>{fmt(rev)}</div></div>
+        <div className="card"><div className="stat-label">Dépenses</div><div className="stat-value" style={{color:"var(--red)"}}>{fmt(dep)}</div></div>
+        <div className="card"><div className="stat-label">Bénéfice</div><div className="stat-value">{fmt(rev-dep)}</div></div>
+      </div>
+      <div className="card">
+        <div className="section-title"><span style={{fontWeight:600}}>Revenus / Dépenses (7 derniers jours)</span></div>
+        <svg viewBox="0 0 350 140" width="100%" height="140">
+          {byDay.map((d,i)=>{
+            const x = i*50+10;
+            const hRev = (d.rev/max)*100;
+            const hDep = (d.dep/max)*100;
+            return (
+              <g key={i}>
+                <rect x={x} y={120-hRev} width="14" height={hRev} rx="3" fill="#22c55e"/>
+                <rect x={x+16} y={120-hDep} width="14" height={hDep} rx="3" fill="#ef4444"/>
+                <text x={x+15} y="134" fontSize="9" fill="#8a94a3" textAnchor="middle">{fmtDate(d.day)}</text>
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+function Finances({data, setData, addNotif, nextId}){
+  const [modal, setModal] = useState(null); // {mode:'add'|'edit', item}
+  const {rev, dep} = computeTotals(data.transactions);
+  const sorted = [...data.transactions].sort((a,b)=> b.date.localeCompare(a.date));
+
+  function save(form){
+    if(modal.mode==="add"){
+      const id = nextId();
+      setData(d=>({...d, transactions:[...d.transactions, {...form, id}]}));
+      addNotif((form.type==="revenu"?"Revenu ajouté : ":"Dépense ajoutée : ")+form.desc);
+    } else {
+      setData(d=>({...d, transactions:d.transactions.map(t=>t.id===form.id?form:t)}));
+      addNotif("Opération modifiée : "+form.desc);
+    }
+    setModal(null);
+  }
+  function del(id){
+    setData(d=>({...d, transactions:d.transactions.filter(t=>t.id!==id)}));
+  }
+
+  return (
+    <div>
+      <div className="section-title">
+        <h1 style={{marginBottom:0}}>Finances</h1>
+        <button className="btn" onClick={()=>setModal({mode:"add", item:{type:"revenu", amount:"", desc:"", cat:"", date:today()}})}>+ Ajouter</button>
+      </div>
+      <div className="grid3">
+        <div className="card"><div className="stat-label">Revenus</div><div className="stat-value" style={{color:"var(--green)"}}>{fmt(rev)}</div></div>
+        <div className="card"><div className="stat-label">Dépenses</div><div className="stat-value" style={{color:"var(--red)"}}>{fmt(dep)}</div></div>
+        <div className="card"><div className="stat-label">Bénéfice</div><div className="stat-value">{fmt(rev-dep)}</div></div>
+      </div>
+      <div className="card">
+        {sorted.length===0 && <div className="empty">Aucune opération</div>}
+        {sorted.map(t=>(
+          <div className="list-item" key={t.id}>
+            <div>
+              <div className={t.type==="revenu"?"amount-pos":"amount-neg"}>{t.type==="revenu"?"+ ":"- "}{fmt(Number(t.amount))}</div>
+              <div className="tag">{t.desc} — {t.cat} — {fmtDate(t.date)}</div>
+            </div>
+            <div style={{display:"flex", gap:8}}>
+              <button className="btn-ghost" onClick={()=>setModal({mode:"edit", item:t})}>Modifier</button>
+              <button className="btn-danger" onClick={()=>del(t.id)}>Suppr.</button>
+            </div>
+          </div>
+        ))}
+      </div>
+      {modal && <TxModal item={modal.item} onClose={()=>setModal(null)} onSave={save}/>}
+    </div>
+  );
+}
+
+function TxModal({item, onClose, onSave}){
+  const [form, setForm] = useState(item);
+  return (
+    <div className="modal-bg" onClick={onClose}>
+      <div className="modal" onClick={e=>e.stopPropagation()}>
+        <h2>{item.desc!==undefined && item.id ? "Modifier l'opération" : "Ajouter une opération"}</h2>
+        <div>
+          <span className="field-label">Type</span>
+          <select value={form.type} onChange={e=>setForm({...form, type:e.target.value})}>
+            <option value="revenu">Revenu</option>
+            <option value="depense">Dépense</option>
+          </select>
+        </div>
+        <div>
+          <span className="field-label">Montant (€)</span>
+          <input type="number" value={form.amount} onChange={e=>setForm({...form, amount:e.target.value})}/>
+        </div>
+        <div>
+          <span className="field-label">Description</span>
+          <input value={form.desc} onChange={e=>setForm({...form, desc:e.target.value})}/>
+        </div>
+        <div>
+          <span className="field-label">Catégorie</span>
+          <input value={form.cat} onChange={e=>setForm({...form, cat:e.target.value})}/>
+        </div>
+        <div>
+          <span className="field-label">Date</span>
+          <input type="date" value={form.date} onChange={e=>setForm({...form, date:e.target.value})}/>
+        </div>
+        <div className="modal-actions">
+          <button className="btn-ghost" style={{flex:1}} onClick={onClose}>Annuler</button>
+          <button className="btn" style={{flex:1}} onClick={()=>form.amount && form.desc && onSave(form)}>Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Projects({data, setData, addNotif, nextId}){
+  const [modal, setModal] = useState(null);
+  function add(form){
+    const id = nextId();
+    setData(d=>({...d, projects:[...d.projects, {...form, id}]}));
+    addNotif("Projet créé : "+form.name);
+    setModal(null);
+  }
+  function updateProgress(id, progress){
+    setData(d=>({...d, projects:d.projects.map(p=>p.id===id?{...p, progress}:p)}));
+  }
+  function commitProgress(id, name){
+    addNotif("Progression modifiée : "+name);
+  }
+  function updateStatus(id, status){
+    setData(d=>({...d, projects:d.projects.map(p=>p.id===id?{...p, status}:p)}));
+  }
+  function del(id){ setData(d=>({...d, projects:d.projects.filter(p=>p.id!==id)})); }
+
+  return (
+    <div>
+      <div className="section-title">
+        <h1 style={{marginBottom:0}}>Projets</h1>
+        <button className="btn" onClick={()=>setModal(true)}>+ Ajouter</button>
+      </div>
+      {data.projects.length===0 && <div className="card empty">Aucun projet</div>}
+      {data.projects.map(p=>(
+        <div className="card" key={p.id} style={{marginBottom:12}}>
+          <div className="row">
+            <div style={{fontWeight:700}}>{p.name}</div>
+            <button className="btn-danger" onClick={()=>del(p.id)}>Suppr.</button>
+          </div>
+          <div className="tag" style={{margin:"6px 0"}}>{p.desc}</div>
+          <div className="row" style={{marginTop:8}}>
+            <select value={p.status} onChange={e=>updateStatus(p.id, e.target.value)} style={{width:150}}>
+              <option>À faire</option>
+              <option>En cours</option>
+              <option>Terminé</option>
+            </select>
+            <span className="tag">{p.progress}%</span>
+          </div>
+          <div className="progress-bar"><div className="progress-fill" style={{width:p.progress+"%"}}></div></div>
+          <input type="range" min="0" max="100" value={p.progress}
+            onChange={e=>updateProgress(p.id, Number(e.target.value))}
+            onMouseUp={()=>commitProgress(p.id, p.name)}
+            onTouchEnd={()=>commitProgress(p.id, p.name)}
+            style={{marginTop:10, width:"100%", accentColor:"#4f7cff"}}/>
+        </div>
+      ))}
+      {modal && <ProjectModal onClose={()=>setModal(null)} onSave={add}/>}
+    </div>
+  );
+}
+
+function ProjectModal({onClose, onSave}){
+  const [form, setForm] = useState({name:"", desc:"", progress:0, status:"À faire"});
+  return (
+    <div className="modal-bg" onClick={onClose}>
+      <div className="modal" onClick={e=>e.stopPropagation()}>
+        <h2>Nouveau projet</h2>
+        <div><span className="field-label">Nom</span><input value={form.name} onChange={e=>setForm({...form, name:e.target.value})}/></div>
+        <div><span className="field-label">Description</span><input value={form.desc} onChange={e=>setForm({...form, desc:e.target.value})}/></div>
+        <div className="modal-actions">
+          <button className="btn-ghost" style={{flex:1}} onClick={onClose}>Annuler</button>
+          <button className="btn" style={{flex:1}} onClick={()=>form.name && onSave(form)}>Créer</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Tasks({data, setData, addNotif, nextId}){
+  const [text, setText] = useState("");
+  function add(){
+    if(!text.trim()) return;
+    const id = nextId();
+    setData(d=>({...d, tasks:[...d.tasks, {id, text, done:false}]}));
+    setText("");
+  }
+  function toggle(id){
+    let taskText="";
+    setData(d=>({...d, tasks:d.tasks.map(t=>{
+      if(t.id===id){ taskText=t.text; return {...t, done:!t.done}; }
+      return t;
+    })}));
+    setTimeout(()=>addNotif("Tâche terminée : "+taskText), 0);
+  }
+  function del(id){ setData(d=>({...d, tasks:d.tasks.filter(t=>t.id!==id)})); }
+
+  return (
+    <div>
+      <h1>À faire</h1>
+      <div className="card" style={{marginBottom:16, display:"flex", gap:10}}>
+        <input placeholder="Nouvelle tâche..." value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>e.key==='Enter' && add()}/>
+        <button className="btn" onClick={add}>Ajouter</button>
+      </div>
+      <div className="card">
+        {data.tasks.length===0 && <div className="empty">Aucune tâche</div>}
+        {data.tasks.map(t=>(
+          <div className="list-item" key={t.id}>
+            <div style={{display:"flex", alignItems:"center", gap:12}}>
+              <button className={"task-check"+(t.done?" done":"")} onClick={()=>toggle(t.id)}>{t.done?"✓":""}</button>
+              <span style={{textDecoration:t.done?"line-through":"none", color:t.done?"var(--muted)":"var(--text)"}}>{t.text}</span>
+            </div>
+            <button className="btn-danger" onClick={()=>del(t.id)}>Suppr.</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Funnel({data, setData, addNotif}){
+  const done = data.funnel.filter(s=>s.done).length;
+  const total = data.funnel.length;
+  const pct = Math.round((done/total)*100);
+  function toggle(id){
+    let label="";
+    setData(d=>({...d, funnel:d.funnel.map(s=>{
+      if(s.id===id){ label=s.label; return {...s, done:!s.done}; }
+      return s;
+    })}));
+    setTimeout(()=>addNotif("Étape validée : "+label), 0);
+  }
+  return (
+    <div>
+      <h1>Parcours de vente</h1>
+      <div className="card" style={{marginBottom:16}}>
+        <div className="row"><span style={{fontWeight:600}}>{done} / {total} étapes terminées</span><span style={{fontWeight:700}}>{pct}%</span></div>
+        <div className="progress-bar"><div className="progress-fill" style={{width:pct+"%"}}></div></div>
+      </div>
+      <div className="card">
+        {data.funnel.map((s,i)=>(
+          <div className="funnel-step" key={s.id}>
+            <button className={"task-check"+(s.done?" done":"")} onClick={()=>toggle(s.id)}>{s.done?"✓":""}</button>
+            <span style={{textDecoration:s.done?"line-through":"none", color:s.done?"var(--muted)":"var(--text)"}}>{i+1}. {s.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function NotifPanel({data, setData}){
+  function markAllRead(){
+    setData(d=>({...d, notifications:d.notifications.map(n=>({...n, read:true}))}));
+  }
+  function markRead(id){
+    setData(d=>({...d, notifications:d.notifications.map(n=>n.id===id?{...n, read:true}:n)}));
+  }
+  return (
+    <div>
+      <div className="section-title">
+        <h1 style={{marginBottom:0}}>Notifications</h1>
+        <button className="btn-ghost" onClick={markAllRead}>Tout marquer comme lu</button>
+      </div>
+      <div className="card">
+        {data.notifications.length===0 && <div className="empty">Aucune notification</div>}
+        {data.notifications.map(n=>(
+          <div key={n.id} className={"notif-item"+(n.read?"":" unread")} onClick={()=>markRead(n.id)} style={{cursor:"pointer"}}>
+            {n.text}
+            <div className="notif-time">{new Date(n.date).toLocaleString('fr-FR')}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
