@@ -309,7 +309,6 @@ function today(){ return new Date().toISOString().slice(0,10); }
 function fmtDate(d){ const dt = new Date(d); return dt.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}); }
 
 function App(){
-  const [authed, setAuthed] = useState(sessionStorage.getItem("authed")==="1");
   const [email, setEmail] = useState("");
   const [pwd, setPwd] = useState("");
   const [err, setErr] = useState("");
@@ -353,28 +352,29 @@ function App(){
 }
   function nextId(){ let id; setData(d=>{ id=d.nextId; return {...d, nextId:d.nextId+1}; }); return id; }
 
-  function Login({onLogin}){
-  const [email,setEmail] = useState("");
-  const [pwd,setPwd] = useState("");
-  const [err,setErr] = useState("");
+  
+  function logout(){ sessionStorage.removeItem("authed"); setAuthed(false); }
 
+  if(!authed){
   async function login(e){
     e.preventDefault();
     setErr("");
 
-    const {data,error} = await supabaseClient.auth.signInWithPassword({
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
       email: email,
       password: pwd
     });
 
     if(error){
-      setErr("Email ou mot de passe incorrect");
       console.error("Erreur Supabase :", error);
+      setErr("Email ou mot de passe incorrect");
       return;
     }
 
     console.log("Connexion réussie :", data.user);
-    onLogin();
+
+    sessionStorage.setItem("authed", "1");
+    setAuthed(true);
   }
 
   return (
@@ -401,7 +401,7 @@ function App(){
               <input
                 type="email"
                 value={email}
-                onChange={e=>setEmail(e.target.value)}
+                onChange={e => setEmail(e.target.value)}
                 placeholder="vous@exemple.com"
                 required
               />
@@ -412,7 +412,7 @@ function App(){
               <input
                 type="password"
                 value={pwd}
-                onChange={e=>setPwd(e.target.value)}
+                onChange={e => setPwd(e.target.value)}
                 placeholder="Votre mot de passe"
                 required
               />
@@ -438,32 +438,7 @@ function App(){
       </div>
     </div>
   );
-}
-  function logout(){ sessionStorage.removeItem("authed"); setAuthed(false); }
-
-  if(!authed){
-    return (
-      <div className="login-wrap">
-        <form className="login-card" onSubmit={login}>
-          <h1>🔒 Connexion</h1>
-          <div className="field">
-  <label>Email</label>
-  <input
-    type="email"
-    value={email}
-    onChange={e => setEmail(e.target.value)}
-    placeholder="vous@exemple.com"
-    required
-  />
-</div>
-          <input type="password" placeholder="Mot de passe" value={pwd} onChange={e=>setPwd(e.target.value)} style={{marginBottom:12}} autoFocus/>
-          {err && <div style={{color:"var(--red)", fontSize:13, marginBottom:10}}>{err}</div>}
-          <button className="btn" style={{width:"100%"}} type="submit">Se connecter</button>
-        </form>
-      </div>
-    );
-  }
-
+} 
   const unread = data.notifications.filter(n=>!n.read).length;
 
   const nav = [
