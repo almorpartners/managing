@@ -75,6 +75,179 @@
     .main{padding:20px;}
     .grid3{grid-template-columns:1fr;}
   }
+  /* =========================
+   AUTHENTIFICATION
+   ========================= */
+
+.auth-page {
+  min-height: 100vh;
+  background: #f6f7f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.auth-container {
+  width: 100%;
+  max-width: 420px;
+}
+
+.auth-brand {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.auth-logo {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 18px;
+  border-radius: 14px;
+  background: #111318;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -0.5px;
+}
+
+.auth-brand h1 {
+  margin: 0;
+  color: #111318;
+  font-size: 26px;
+  font-weight: 650;
+  letter-spacing: -0.7px;
+}
+
+.auth-brand p {
+  margin: 8px 0 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.auth-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 22px;
+  padding: 32px;
+  box-shadow:
+    0 20px 50px rgba(17, 19, 24, 0.06),
+    0 2px 8px rgba(17, 19, 24, 0.03);
+}
+
+.auth-card h2 {
+  margin: 0 0 6px;
+  color: #111318;
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: -0.4px;
+}
+
+.auth-card-description {
+  margin: 0 0 26px;
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field label {
+  color: #374151;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.field input {
+  width: 100%;
+  box-sizing: border-box;
+  height: 48px;
+  padding: 0 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fafafa;
+  color: #111318;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.18s ease;
+}
+
+.field input::placeholder {
+  color: #9ca3af;
+}
+
+.field input:hover {
+  border-color: #d1d5db;
+}
+
+.field input:focus {
+  background: #ffffff;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.10);
+}
+
+.auth-button {
+  width: 100%;
+  height: 48px;
+  margin-top: 4px;
+  border: 0;
+  border-radius: 12px;
+  background: #111318;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.auth-button:hover {
+  background: #252832;
+  transform: translateY(-1px);
+}
+
+.auth-button:active {
+  transform: translateY(0);
+}
+
+.auth-error {
+  padding: 11px 13px;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.auth-footer {
+  margin-top: 22px;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+@media (max-width: 480px) {
+  .auth-page {
+    padding: 18px;
+  }
+
+  .auth-card {
+    padding: 24px;
+    border-radius: 18px;
+  }
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -93,7 +266,7 @@ const supabaseClient = window.supabase.createClient(
 console.log("Client Supabase créé :", supabaseClient);
 const {useState, useEffect} = React;
 
-const PASSWORD = "2444";
+
 const LS_KEY = "mondash_data_v1";
 
 function loadData(){
@@ -137,6 +310,7 @@ function fmtDate(d){ const dt = new Date(d); return dt.toLocaleDateString('fr-FR
 
 function App(){
   const [authed, setAuthed] = useState(sessionStorage.getItem("authed")==="1");
+  const [email, setEmail] = useState("");
   const [pwd, setPwd] = useState("");
   const [err, setErr] = useState("");
   const [data, setData] = useState(loadData());
@@ -179,11 +353,92 @@ function App(){
 }
   function nextId(){ let id; setData(d=>{ id=d.nextId; return {...d, nextId:d.nextId+1}; }); return id; }
 
-  function login(e){
+  function Login({onLogin}){
+  const [email,setEmail] = useState("");
+  const [pwd,setPwd] = useState("");
+  const [err,setErr] = useState("");
+
+  async function login(e){
     e.preventDefault();
-    if(pwd === PASSWORD){ sessionStorage.setItem("authed","1"); setAuthed(true); }
-    else setErr("Mot de passe incorrect");
+    setErr("");
+
+    const {data,error} = await supabaseClient.auth.signInWithPassword({
+      email: email,
+      password: pwd
+    });
+
+    if(error){
+      setErr("Email ou mot de passe incorrect");
+      console.error("Erreur Supabase :", error);
+      return;
+    }
+
+    console.log("Connexion réussie :", data.user);
+    onLogin();
   }
+
+  return (
+    <div className="auth-page">
+      <div className="auth-container">
+
+        <div className="auth-brand">
+          <div className="auth-logo">M</div>
+          <h1>Managing</h1>
+          <p>Votre espace de gestion</p>
+        </div>
+
+        <div className="auth-card">
+          <h2>Bienvenue</h2>
+
+          <p className="auth-card-description">
+            Connectez-vous à votre espace professionnel.
+          </p>
+
+          <form className="auth-form" onSubmit={login}>
+
+            <div className="field">
+              <label>Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={e=>setEmail(e.target.value)}
+                placeholder="vous@exemple.com"
+                required
+              />
+            </div>
+
+            <div className="field">
+              <label>Mot de passe</label>
+              <input
+                type="password"
+                value={pwd}
+                onChange={e=>setPwd(e.target.value)}
+                placeholder="Votre mot de passe"
+                required
+              />
+            </div>
+
+            {err && (
+              <div className="auth-error">
+                {err}
+              </div>
+            )}
+
+            <button className="auth-button" type="submit">
+              Se connecter
+            </button>
+
+          </form>
+        </div>
+
+        <div className="auth-footer">
+          Espace privé · Managing
+        </div>
+
+      </div>
+    </div>
+  );
+}
   function logout(){ sessionStorage.removeItem("authed"); setAuthed(false); }
 
   if(!authed){
@@ -191,6 +446,16 @@ function App(){
       <div className="login-wrap">
         <form className="login-card" onSubmit={login}>
           <h1>🔒 Connexion</h1>
+          <div className="field">
+  <label>Email</label>
+  <input
+    type="email"
+    value={email}
+    onChange={e => setEmail(e.target.value)}
+    placeholder="vous@exemple.com"
+    required
+  />
+</div>
           <input type="password" placeholder="Mot de passe" value={pwd} onChange={e=>setPwd(e.target.value)} style={{marginBottom:12}} autoFocus/>
           {err && <div style={{color:"var(--red)", fontSize:13, marginBottom:10}}>{err}</div>}
           <button className="btn" style={{width:"100%"}} type="submit">Se connecter</button>
