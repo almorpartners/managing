@@ -309,53 +309,17 @@ function today(){ return new Date().toISOString().slice(0,10); }
 function fmtDate(d){ const dt = new Date(d); return dt.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}); }
 
 function App(){
-  const [email, setEmail] = useState("");
-  const [pwd, setPwd] = useState("");
-  const [err, setErr] = useState("");
+  const [authed, setAuthed] = useState(false);
+const [email, setEmail] = useState("");
+const [pwd, setPwd] = useState("");
+const [err, setErr] = useState("");
   const [data, setData] = useState(loadData());
   const [page, setPage] = useState("dashboard");
   const [showNotif, setShowNotif] = useState(false);
 
   useEffect(()=>{ saveData(data); }, [data]);
 
- async function addNotif(text) {
-  // Garder la notification dans ton application
-  setData(d => ({
-    ...d,
-    notifications: [
-      {
-        id: d.nextId,
-        text,
-        read: false,
-        date: new Date().toISOString()
-      },
-      ...d.notifications
-    ],
-    nextId: d.nextId + 1
-  }));
-
-  // Enregistrer aussi la notification dans Supabase
-  const { data, error } = await supabaseClient
-    .from("notifications")
-    .insert({
-      title: "Managing",
-      message: text,
-      type: "info"
-    })
-    .select();
-
-  if (error) {
-    console.error("Erreur Supabase notification :", error);
-  } else {
-    console.log("Notification enregistrée dans Supabase :", data);
-  }
-}
-  function nextId(){ let id; setData(d=>{ id=d.nextId; return {...d, nextId:d.nextId+1}; }); return id; }
-
-  
-  function logout(){ sessionStorage.removeItem("authed"); setAuthed(false); }
-
-  if(!authed){
+ if(!authed){
   async function login(e){
     e.preventDefault();
     setErr("");
@@ -439,6 +403,45 @@ function App(){
     </div>
   );
 } 
+
+ async function addNotif(text) {
+  // Garder la notification dans ton application
+  setData(d => ({
+    ...d,
+    notifications: [
+      {
+        id: d.nextId,
+        text,
+        read: false,
+        date: new Date().toISOString()
+      },
+      ...d.notifications
+    ],
+    nextId: d.nextId + 1
+  }));
+
+  // Enregistrer aussi la notification dans Supabase
+  const { data, error } = await supabaseClient
+    .from("notifications")
+    .insert({
+      title: "Managing",
+      message: text,
+      type: "info"
+    })
+    .select();
+
+  if (error) {
+    console.error("Erreur Supabase notification :", error);
+  } else {
+    console.log("Notification enregistrée dans Supabase :", data);
+  }
+}
+  function nextId(){ let id; setData(d=>{ id=d.nextId; return {...d, nextId:d.nextId+1}; }); return id; }
+
+  
+  function logout(){ sessionStorage.removeItem("authed"); setAuthed(false); }
+
+ 
   const unread = data.notifications.filter(n=>!n.read).length;
 
   const nav = [
